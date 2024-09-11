@@ -14,8 +14,8 @@ public:
     explicit operator bool() const;
     void init(
         FileManager* file_Manager,
-        FlexCAN_T4<CAN1, RX_SIZE_256, TX_SIZE_16>* motor_CAN,
-        FlexCAN_T4<CAN2, RX_SIZE_256, TX_SIZE_16>* data_CAN,
+        FlexCAN_T4<CAN2, RX_SIZE_256, TX_SIZE_16>* motor_CAN,
+        FlexCAN_T4<CAN1, RX_SIZE_256, TX_SIZE_16>* data_CAN,
         int save_Interval
     );
     void startup();
@@ -29,8 +29,8 @@ public:
     bool verbose = true;
 private:
     FileManager* fileManager;
-    FlexCAN_T4<CAN1, RX_SIZE_256, TX_SIZE_16>* motorCAN;
-    FlexCAN_T4<CAN2, RX_SIZE_256, TX_SIZE_16>* dataCAN;
+    FlexCAN_T4<CAN2, RX_SIZE_256, TX_SIZE_16>* motorCAN;
+    FlexCAN_T4<CAN1, RX_SIZE_256, TX_SIZE_16>* dataCAN;
     uint32_t startTimeOffset;
     uint32_t lastSaveTime;
     uint32_t saveInterval;

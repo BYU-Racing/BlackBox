@@ -2,8 +2,8 @@
 
 void BlackBox::init(
     FileManager* file_Manager,
-    FlexCAN_T4<CAN1, RX_SIZE_256, TX_SIZE_16>* motor_CAN,
-    FlexCAN_T4<CAN2, RX_SIZE_256, TX_SIZE_16>* data_CAN,
+    FlexCAN_T4<CAN2, RX_SIZE_256, TX_SIZE_16>* motor_CAN,
+    FlexCAN_T4<CAN1, RX_SIZE_256, TX_SIZE_16>* data_CAN,
     const int save_Interval
 )
 {

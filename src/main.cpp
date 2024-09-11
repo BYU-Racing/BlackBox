@@ -40,7 +40,7 @@ constexpr int USE_SYNC_INTERVAL = 300000;
  *
  * Recommended value: 5,000     (5 seconds)
  */
-constexpr uint32_t SAVE_INTERVAL = 5000;
+constexpr uint32_t SAVE_INTERVAL = 30000;
 // CAN Bus
 /** Flag for whether or not to use the new CAN handling style (multi-threaded callbacks) */
 constexpr bool USE_CAN_MAILBOXES = false;
@@ -62,8 +62,8 @@ constexpr bool DO_FLASHY = MAIN_VERBOSE || FILEMANAGER_VERBOSE || BLACKBOX_VERBO
 
 TimeKeeper timeKeeper;
 FileManager fileManager;
-FlexCAN_T4<CAN1, RX_SIZE_256, TX_SIZE_16> motorCAN;
-FlexCAN_T4<CAN2, RX_SIZE_256, TX_SIZE_16> dataCAN;
+FlexCAN_T4<CAN1, RX_SIZE_256, TX_SIZE_16> dataCAN;
+FlexCAN_T4<CAN2, RX_SIZE_256, TX_SIZE_16> motorCAN;
 BlackBox blackBox;
 
 
