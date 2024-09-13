@@ -43,12 +43,7 @@ void BlackBox::setFilePath()
         if (lastFileNumber < 1 || lastFileNumber > 99999) lastFileNumber = 1;
         for (int i = lastFileNumber; i <= 99999; i++)
         {
-            strcpy(filePath, fileDir); // replaces existing buffer values
-            strcat(filePath, "/");
-            char fileNumStr[6];
-            itoa(i, fileNumStr, 10);
-            strcat(filePath, fileNumStr);
-            strcat(filePath, ".csv");
+            snprintf(filePath, 20, "%s/%05d.csv", fileDir, i);
             if (!SD.exists(filePath)) {
                 EEPROM.write(EEPROM_FILE_NUMBER_ADDRESS, i); // Save number to EEPROM
                 return;
@@ -98,21 +93,11 @@ void BlackBox::writeCANMsg(const CAN_message_t& canMsg)
         // + 1 byte for \0
         // = 54 total necessary buffer size
         char line[54];
-        char idStr[11];
-        ultoa(canMsg.id, idStr, 10);
-        char timeStr[11];
         const uint32_t elapsedTime = millis() - startTimeOffset;
-        ultoa(elapsedTime, timeStr, 10);
-        strcpy(line, idStr);
-        strcat(line, ",");
-        strcat(line, timeStr);
-        strcat(line, ",");
+        int lineOffset = snprintf(line, 54, "%lu,%lu", canMsg.id, elapsedTime);
         for (int i = 0; i < canMsg.len; i++)
         {
-            char bufStr[4];
-            itoa(canMsg.buf[i], bufStr, 10);
-            strcat(line, bufStr);
-            if (i < canMsg.len - 1) strcat(line, ",");
+            lineOffset += snprintf(line + lineOffset, 54, i < canMsg.len - 1 ? "%u" : "%u,", canMsg.buf[i]);
         }
         currFile.println(line);
     }
