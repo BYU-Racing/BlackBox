@@ -80,16 +80,19 @@ void BlackBox::writeCANMsg(const CAN_message_t& canMsg)
 {
     if (isActive) // File cannot be written to - not set
     {
-        currFile.print(canMsg.id);
-        currFile.print(",");
-        currFile.print(millis() - startTimeOffset);
-        currFile.print(",");
+        //   20 total bytes for id and millis offset
+        // + 24 total bytes for all possibledata values
+        // + 9 total bytes for all possible commas
+        // + 1 byte for \0
+        // = 54 total necessary buffer size
+        char line[54];
+        int linePos = snprintf(line, sizeof(line), "%lu,%lu,", canMsg.id, millis() - startTimeOffset);
         for (int i = 0; i < canMsg.len; i++)
         {
-            currFile.print(canMsg.buf[i]);
-            if (i < canMsg.len - 1) currFile.print(",");
+            const char* fmt = i < canMsg.len - 1 ? "%u," : "%u"; // print data with comma if next buf[i] has value
+            linePos += snprintf(line + linePos, sizeof(line), fmt, canMsg.buf[i]);
         }
-        currFile.println();
+        currFile.println(line);
     }
 }
 
