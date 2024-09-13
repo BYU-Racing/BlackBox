@@ -6,8 +6,7 @@
 constexpr int CAN_BAUD_RATE = 250000;
 constexpr int SERIAL_BAUD_RATE = 9600;
 constexpr uint32_t SAVE_INTERVAL = 30000;
-constexpr int MAX_MAILBOXES = 8;
-constexpr bool USE_MAILBOXES = false;
+constexpr bool USE_FIFO_MAILBOXES = false;
 
 
 FlexCAN_T4<CAN1, RX_SIZE_256, TX_SIZE_16> dataCAN;
@@ -22,18 +21,12 @@ void canMsgCallback(const CAN_message_t& canMsg)
 
 void enableMailboxes()
 {
-    dataCAN.setMaxMB(MAX_MAILBOXES);
-    motorCAN.setMaxMB(MAX_MAILBOXES);
     dataCAN.enableFIFO();
     motorCAN.enableFIFO();
     dataCAN.enableFIFOInterrupt();
     motorCAN.enableFIFOInterrupt();
-    dataCAN.onReceive(canMsgCallback);
-    motorCAN.onReceive(canMsgCallback);
-    dataCAN.distribute();
-    motorCAN.distribute();
-    dataCAN.mailboxStatus();
-    motorCAN.mailboxStatus();
+    dataCAN.onReceive(FIFO, canMsgCallback);
+    motorCAN.onReceive(FIFO, canMsgCallback);
 }
 
 void setup() {
@@ -43,12 +36,12 @@ void setup() {
     motorCAN.begin();
     dataCAN.setBaudRate(CAN_BAUD_RATE);
     motorCAN.setBaudRate(CAN_BAUD_RATE);
-    if constexpr (USE_MAILBOXES) enableMailboxes();
+    if constexpr (USE_FIFO_MAILBOXES) enableMailboxes();
     blackBox.begin(&dataCAN, &motorCAN, SAVE_INTERVAL);
 }
 
 void loop() {
-    if constexpr (USE_MAILBOXES)
+    if constexpr (USE_FIFO_MAILBOXES)
     {
         dataCAN.events();
         motorCAN.events();
