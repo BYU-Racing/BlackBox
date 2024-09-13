@@ -2,7 +2,10 @@
 #define BLACKBOX_H
 
 #include <SD.h>
+#include <EEPROM.h>
 #include <FlexCAN_T4.h>
+
+constexpr int EEPROM_FILE_NUMBER_ADDRESS = 0; // Rotate every 100,000 writes to address
 
 class BlackBox
 {

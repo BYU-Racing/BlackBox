@@ -11,14 +11,15 @@ void BlackBox::begin(
     saveInterval = save_Interval;
     beginSD();
     openFile();
-    startTimeOffset = millis();
-    lastSaveTime = millis();
+    const uint32_t now = millis();
+    startTimeOffset = now;
+    lastSaveTime = now;
     isActive = true;
 }
 
 BlackBox::~BlackBox()
 {
-    if (currFile) currFile.close(); // close open resources
+    if (currFile) currFile.close();
 }
 
 void BlackBox::beginSD()
@@ -35,62 +36,83 @@ void BlackBox::beginSD()
 
 void BlackBox::setFilePath()
 {
-    if (!currFile) // Only set the file path if a file is not already specified
+    if (!currFile)
     {
-        for (int i = 1; i <= 99999; i++)
+        // Use EEPROM to store last used number for faster "available path" finding
+        int lastFileNumber = EEPROM.read(EEPROM_FILE_NUMBER_ADDRESS);
+        if (lastFileNumber < 1 || lastFileNumber > 99999) lastFileNumber = 1;
+        for (int i = lastFileNumber; i <= 99999; i++)
         {
-            snprintf(filePath, 20, "%s/%05d.csv", fileDir, i);
-            if (!SD.exists(filePath)) return; // filename is available - return to keep filePath
+            strcpy(filePath, fileDir); // replaces existing buffer values
+            strcat(filePath, "/");
+            char fileNumStr[6];
+            itoa(i, fileNumStr, 10);
+            strcat(filePath, fileNumStr);
+            strcat(filePath, ".csv");
+            if (!SD.exists(filePath)) {
+                EEPROM.write(EEPROM_FILE_NUMBER_ADDRESS, i); // Save number to EEPROM
+                return;
+            }
         }
-        isActive = false; // no more available filenames - file not set
+        isActive = false;
     }
 }
 
 void BlackBox::openFile()
 {
-    if (filePath[0] != '\0') // filePath must have a value
+    if (filePath[0] != '\0')
     {
         currFile = SD.open(filePath, FILE_WRITE_BEGIN);
-        if (!currFile)
+        if (currFile)
         {
-            isActive = false;
-            return;
-        } else
-        {
-            currFile.println("ID,Time,Data"); // Write csv header
+            currFile.println("ID,Time,Data");
             return;
         }
     }
-    isActive = false; // filePath was unavailable - file not opened
+    isActive = false;
 }
 
 void BlackBox::save()
 {
     if (isActive) // File cannot be flushed - not set
     {
-        if (millis() - lastSaveTime > saveInterval) // Interval-based guard
+        // MAYBE: Determine whether to replace interval-based guard with alternative?
+        // Buffer based guard
+        // Brownout detection
+        // Shutdown command
+        if (const uint32_t now = millis(); now - lastSaveTime >= saveInterval)
         {
-            currFile.flush(); // Force clear remaining write buffer
-            lastSaveTime = millis();
+            currFile.flush();
+            lastSaveTime = now;
         }
     }
 }
 
 void BlackBox::writeCANMsg(const CAN_message_t& canMsg)
 {
-    if (isActive) // File cannot be written to - not set
+    if (isActive)
     {
-        //   20 total bytes for id and millis offset
+        //   20 total bytes for id and millis offset +
         // + 24 total bytes for all possibledata values
         // + 9 total bytes for all possible commas
         // + 1 byte for \0
         // = 54 total necessary buffer size
         char line[54];
-        int linePos = snprintf(line, sizeof(line), "%lu,%lu,", canMsg.id, millis() - startTimeOffset);
+        char idStr[11];
+        ultoa(canMsg.id, idStr, 10);
+        char timeStr[11];
+        const uint32_t elapsedTime = millis() - startTimeOffset;
+        ultoa(elapsedTime, timeStr, 10);
+        strcpy(line, idStr);
+        strcat(line, ",");
+        strcat(line, timeStr);
+        strcat(line, ",");
         for (int i = 0; i < canMsg.len; i++)
         {
-            const char* fmt = i < canMsg.len - 1 ? "%u," : "%u"; // print data with comma if next buf[i] has value
-            linePos += snprintf(line + linePos, sizeof(line), fmt, canMsg.buf[i]);
+            char bufStr[4];
+            itoa(canMsg.buf[i], bufStr, 10);
+            strcat(line, bufStr);
+            if (i < canMsg.len - 1) strcat(line, ",");
         }
         currFile.println(line);
     }
@@ -98,12 +120,15 @@ void BlackBox::writeCANMsg(const CAN_message_t& canMsg)
 
 void BlackBox::readCAN()
 {
-    if (CAN_message_t canMsg; dataCAN->read(canMsg))
+    if (isActive)
     {
-        writeCANMsg(canMsg);
-    }
-    if (CAN_message_t canMsg; motorCAN->read(canMsg))
-    {
-        writeCANMsg(canMsg);
+        if (CAN_message_t canMsg; dataCAN->read(canMsg))
+        {
+            writeCANMsg(canMsg);
+        }
+        if (CAN_message_t canMsg; motorCAN->read(canMsg))
+        {
+            writeCANMsg(canMsg);
+        }
     }
 }
