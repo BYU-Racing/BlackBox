@@ -15,17 +15,6 @@ FlexCAN_T4<CAN2, RX_SIZE_256, TX_SIZE_16> motorCAN;
 BlackBox blackBox;
 
 
-void flash(const int msec, const int repeat=1)
-{
-    for (int i = 0; i < repeat; i++)
-    {
-        digitalWrite(LED_BUILTIN, HIGH);
-        delay(msec);
-        digitalWrite(LED_BUILTIN, LOW);
-        delay(msec);
-    }
-}
-
 void canMsgCallback(const CAN_message_t& canMsg)
 {
     blackBox.writeCANMsg(canMsg);
@@ -54,7 +43,7 @@ void setup() {
     motorCAN.begin();
     dataCAN.setBaudRate(CAN_BAUD_RATE);
     motorCAN.setBaudRate(CAN_BAUD_RATE);
-    if (USE_MAILBOXES) enableMailboxes();
+    if constexpr (USE_MAILBOXES) enableMailboxes();
     blackBox.begin(&dataCAN, &motorCAN, SAVE_INTERVAL);
 }
 
