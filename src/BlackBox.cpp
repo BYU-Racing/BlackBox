@@ -43,7 +43,8 @@ void BlackBox::setFilePath()
         if (lastFileNumber < 1 || lastFileNumber > 99999) lastFileNumber = 1;
         for (int i = lastFileNumber; i <= 99999; i++)
         {
-            snprintf(filePath, 20, "%s/%05d.csv", fileDir, i);
+            // .avar is just a csv
+            snprintf(filePath, 20, "%s/%05d.avar", fileDir, i);
             if (!SD.exists(filePath)) {
                 EEPROM.write(EEPROM_FILE_NUMBER_ADDRESS, i); // Save number to EEPROM
                 return;
@@ -60,7 +61,7 @@ void BlackBox::openFile()
         currFile = SD.open(filePath, FILE_WRITE_BEGIN);
         if (currFile)
         {
-            currFile.println("ID,Time,Data");
+            currFile.println("ID,Time,Buf1,Buf2,Buf3,Buf4,Buf5,Buf6,Buf7,Buf8");
             return;
         }
     }
@@ -87,17 +88,33 @@ void BlackBox::writeCANMsg(const CAN_message_t& canMsg)
 {
     if (isActive)
     {
-        //   20 total bytes for id and millis offset +
-        // + 24 total bytes for all possibledata values
-        // + 9 total bytes for all possible commas
+        // + 20 total bytes for id and millis offset ( uint32_t 10 char max )
+        // + 24 total bytes for all possibledata values ( uint8_t 3 char max )
+        // + 9 total bytes for all possible commas ( No first or final )
         // + 1 byte for \0
         // = 54 total necessary buffer size
-        char line[54];
+        // 64 nearest base 2 multiple
+        constexpr int bufSize = 64;
+        constexpr int canBufs = 8;
+        char line[bufSize];
         const uint32_t elapsedTime = millis() - startTimeOffset;
-        int lineOffset = snprintf(line, 54, "%lu,%lu", canMsg.id, elapsedTime);
-        for (int i = 0; i < canMsg.len; i++)
+        int lineOffset = snprintf(line, bufSize, "%lu,%lu,", canMsg.id, elapsedTime);
+        for (int i = 0; i < canBufs; i++)
         {
-            lineOffset += snprintf(line + lineOffset, 54, i < canMsg.len - 1 ? "%u" : "%u,", canMsg.buf[i]);
+            if (i < canMsg.len)
+            {
+                // Write buffer value if it exists
+                lineOffset += snprintf(line + lineOffset, bufSize - lineOffset, "%u", canMsg.buf[i]);
+            } else
+            {
+                // Write 0 if there is not buffer value
+                lineOffset += snprintf(line + lineOffset, bufSize - lineOffset, "%u", 0);
+            }
+            if (i < canBufs - 1)
+            {
+                // Write a comma if there is another value afterwards
+                lineOffset += snprintf(line + lineOffset, bufSize - lineOffset, ",");
+            }
         }
         currFile.println(line);
     }
