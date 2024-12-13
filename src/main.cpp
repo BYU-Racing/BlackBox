@@ -5,8 +5,8 @@
 
 constexpr int CAN_BAUD_RATE = 250000;
 constexpr int SERIAL_BAUD_RATE = 9600;
-constexpr uint32_t SAVE_INTERVAL = 30000;
-constexpr bool USE_FIFO_MAILBOXES = true;
+constexpr uint32_t SAVE_INTERVAL = 3000;
+constexpr bool USE_FIFO_MAILBOXES = false;
 
 
 FlexCAN_T4<CAN1, RX_SIZE_256, TX_SIZE_16> dataCAN;
@@ -32,6 +32,8 @@ void enableMailboxes()
 void setup() {
     pinMode(LED_BUILTIN, OUTPUT);
     Serial.begin(SERIAL_BAUD_RATE);
+    delay(1000);
+    Serial.println("BEGIN");
     dataCAN.begin();
     motorCAN.begin();
     dataCAN.setBaudRate(CAN_BAUD_RATE);

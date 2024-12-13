@@ -4,6 +4,9 @@
 #include <SD.h>
 #include <EEPROM.h>
 #include <FlexCAN_T4.h>
+#include <LoRa.h>
+#include <SPI.h>
+#include <unordered_map>
 
 constexpr int EEPROM_FILE_NUMBER_ADDRESS = 0; // Rotate every 100,000 writes to address
 
@@ -31,6 +34,7 @@ private:
     uint32_t saveInterval = 0;
     uint32_t startTimeOffset = 0;
     uint32_t lastSaveTime = 0;
+    int arr[4] = {1, 2, 3, 4};
 
     // File interaction
     const char* fileDir = "/data/";
@@ -39,6 +43,8 @@ private:
     void beginSD();
     void setFilePath();
     void openFile();
+
+    void sendLoRa(const CAN_message_t& msg);
 };
 
 #endif //BLACKBOX_H

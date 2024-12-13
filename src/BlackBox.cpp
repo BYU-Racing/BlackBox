@@ -15,6 +15,12 @@ void BlackBox::begin(
     startTimeOffset = now;
     lastSaveTime = now;
     isActive = true;
+
+    if(!LoRa.begin(915E6)) {
+        Serial.println("LoRa failed init");
+    }
+
+    LoRa.setSpreadingFactor(9);
 }
 
 BlackBox::~BlackBox()
@@ -127,10 +133,31 @@ void BlackBox::readCAN()
         if (CAN_message_t canMsg; dataCAN->read(canMsg))
         {
             writeCANMsg(canMsg);
+            sendLoRa(canMsg);
         }
         if (CAN_message_t canMsg; motorCAN->read(canMsg))
         {
             writeCANMsg(canMsg);
+            sendLoRa(canMsg);
         }
     }
+}
+
+
+void BlackBox::sendLoRa(const CAN_message_t& msg) {
+
+    //MAP CHECK IF WE WANT TO SEND THE ID
+    if (std::find(std::begin(arr), std::end(arr), msg.id) == std::end(arr)) {
+        return;
+    }
+    
+    uint8_t loraBuf[9] = {msg.id};
+
+    for(int i = 1; i < 9; i++) {
+        loraBuf[i] = msg.buf[i - 1];
+    }
+
+    LoRa.beginPacket();
+    LoRa.write(loraBuf, sizeof(loraBuf));
+    LoRa.endPacket();
 }
