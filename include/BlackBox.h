@@ -34,7 +34,7 @@ private:
     uint32_t saveInterval = 0;
     uint32_t startTimeOffset = 0;
     uint32_t lastSaveTime = 0;
-    int arr[4] = {1, 2, 3, 4};
+    int arr[3] = {1, 2, 3};
 
     // File interaction
     const char* fileDir = "/data/";

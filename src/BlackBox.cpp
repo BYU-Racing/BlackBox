@@ -50,7 +50,7 @@ void BlackBox::setFilePath()
         for (int i = lastFileNumber; i <= 99999; i++)
         {
             // .avar is just a csv
-            snprintf(filePath, 20, "%s/%05d.avar", fileDir, i);
+            snprintf(filePath, 20, "%s/%05d.ava", fileDir, i);
             if (!SD.exists(filePath)) {
                 EEPROM.write(EEPROM_FILE_NUMBER_ADDRESS, i); // Save number to EEPROM
                 return;
@@ -150,7 +150,7 @@ void BlackBox::sendLoRa(const CAN_message_t& msg) {
     if (std::find(std::begin(arr), std::end(arr), msg.id) == std::end(arr)) {
         return;
     }
-    
+
     uint8_t loraBuf[9] = {msg.id};
 
     for(int i = 1; i < 9; i++) {
