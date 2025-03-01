@@ -34,7 +34,7 @@ private:
     uint32_t saveInterval = 0;
     uint32_t startTimeOffset = 0;
     uint32_t lastSaveTime = 0;
-    int arr[3] = {1, 2, 3};
+    int arr[3] = {1, 2, 3}; // The IDs that we want to hand off to live telemetry
 
     // File interaction
     const char* fileDir = "/data/";

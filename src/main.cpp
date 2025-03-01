@@ -39,6 +39,7 @@ void setup() {
     motorCAN.setBaudRate(CAN_BAUD_RATE);
     if constexpr (USE_FIFO_MAILBOXES) enableMailboxes();
     blackBox.begin(&dataCAN, &motorCAN, SAVE_INTERVAL);
+    Serial.println("INIT COMPLETE");
 }
 
 void loop() {
