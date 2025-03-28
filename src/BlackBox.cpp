@@ -134,11 +134,14 @@ void BlackBox::readCAN()
         {
             writeCANMsg(canMsg);
             sendLoRa(canMsg);
+            Serial.println("READ MSG M");
         }
         if (CAN_message_t canMsg; motorCAN->read(canMsg))
         {
             writeCANMsg(canMsg);
             sendLoRa(canMsg);
+            Serial.print("READ MSG D");
+            Serial.println(canMsg.id);
         }
     }
 }
